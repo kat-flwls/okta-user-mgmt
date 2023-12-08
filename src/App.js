@@ -1,23 +1,37 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import { LoginCallback, SecureRoute, Security } from '@okta/okta-react';
+import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
+import { useHistory } from 'react-router-dom';
+import Header from './Header';
+import Home from './Home';
+import Private from './Private';
+import { Route} from 'react-router-dom';
 
-function App() {
+const oktaAuth = new OktaAuth({
+  issuer: 'https://dev-90013789.okta.com/oauth2/default',
+  clientId: '0oadmegrx2cZi5XlF5d7',
+  redirectUri: window.location.origin + '/callback'
+});
+
+const App = () => {
+  const history = useHistory();
+  const restoreOriginalUri = async (_oktaAuth, originalUri) => {
+    history.replace(toRelativeUrl(originalUri, window.location.origin));
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="page">
+        <div className="content">
+        <Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
+          <Header/>
+          <Route path='/' exact={true} component={Home}/>
+          <SecureRoute path='/private' exact={true} component={Private}/>
+          <Route path='/callback' component={LoginCallback}/>
+        </Security>
+        </div>
+      </div>
     </div>
   );
 }
